@@ -22,6 +22,10 @@ class MainActivity : AppCompatActivity() {
     private var techListsArray: Array<Array<String>>? = null
     private var intentFiltersArray: Array<IntentFilter>? = null
     private var adapter: NfcAdapter? = null
+    private var cardID: UInt? = null
+    private var cardExpiration: LocalDate? = null
+    private var tickets: Array<Int>? = null
+    private var lastPassages: Array<LocalDate>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +73,7 @@ class MainActivity : AppCompatActivity() {
                     ((id_b[1].toUInt() and 0xFFu) shl 16) or
                     ((id_b[2].toUInt() and 0xFFu) shl 8) or
                     (id_b[3].toUInt() and 0xFFu)
+            cardID = id
             Log.i("Numéro de carte", "%d (%s)".format(id.toLong(), formatBytes(id_b)))
             // Devrait contenir: Version de carte OPUS, réseau STM, date d'expiration & info sur l'utilisateur(?)
             val envField = read(isoDep, arrayOf<UShort>().asIterable(), 0x07) ?: throw Exception("???? No Env?")
@@ -221,6 +226,10 @@ class MainActivity : AppCompatActivity() {
     public override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)
+
+        val intent = Intent(this, DisplayActivity::class.java)
+        intent.putExtra("CardID", cardID!!.toLong())
+        startActivity(intent)
     }
 
     private fun list(tag: IsoDep) {
