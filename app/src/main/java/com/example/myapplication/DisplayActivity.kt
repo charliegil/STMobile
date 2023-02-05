@@ -20,8 +20,16 @@ class DisplayActivity: AppCompatActivity()  {
         }
 
         val exp = intent.getLongExtra("CardID", -1)
-        val id = findViewById<EditText>(R.id.editTextTextPersonName5)
+        var id = findViewById<EditText>(R.id.editTextTextPersonName5)
         id.setText(exp.toString())
+
+        val ticket = intent.getIntExtra("nbTickets", -1)
+        id = findViewById<EditText>(R.id.ticketsLeft)
+        id.setText(if(ticket != -1) ticket.toString() else "Error")
+
+        val date = intent.getStringExtra("subExpiration")
+        id = findViewById<EditText>(R.id.editTextDateSub)
+        id.setText(if(date != null && date != "2000-01-01") date else "No Monthly Subscription")
 
     }
 

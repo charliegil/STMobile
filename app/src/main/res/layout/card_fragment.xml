@@ -48,14 +48,14 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="textPersonName"
-                android:text="Expires on" />
+                android:text="Tickets left" />
 
             <EditText
-                android:id="@+id/editTextDate"
+                android:id="@+id/ticketsLeft"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ems="10"
-                android:inputType="date" />
+                android:inputType="textPersonName" />
 
         </TableRow>
 
@@ -69,12 +69,14 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="textPersonName"
-                android:text="Registered" />
+                android:text="Subscribed until" />
 
-            <CheckBox
-                android:id="@+id/checkBox"
+            <EditText
+                android:id="@+id/editTextDateSub"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="textPersonName" />
 
         </TableRow>
 

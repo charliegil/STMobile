@@ -24,8 +24,8 @@ class MainActivity : AppCompatActivity() {
     private var adapter: NfcAdapter? = null
     private var cardID: UInt? = null
     private var cardExpiration: LocalDate? = null
-    private var tickets: Array<Int>? = null
-    private var lastPassages: Array<LocalDate>? = null
+    private var nbTickets: Int? = null
+    private var subExpiration: LocalDate = LocalDate.of(2000,1,1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,11 +117,13 @@ class MainActivity : AppCompatActivity() {
                     ?: throw Exception("???? No Passages?")).getOrNull(0)
             }.toCollection(Vector<ByteArray?>())
             //passagesField.filter { it != null }.forEach { passage -> Log.d("p", formatBytes(passage!!.asIterable())) }
+            nbTickets = 0
             subsField.zip(passagesField).forEach { (sub, p) ->
                 val isTicket = p?.let { !it.slice(0..10).all { byte -> byte == 0x00.toByte() } } ?: true
                 val hasSub = !sub.all { byte -> byte == 0x00.toByte() }
                 if (isTicket) {
                     val numberOfTickets = readBits(p!!, 16, 8)
+                    nbTickets = numberOfTickets
                     Log.i("Billets", "Nombre de billets: %d".format(numberOfTickets))
                 } else if (hasSub) {
                     // Braindead date format, 14 bits??? And since 1997?? Year of the initial Calypso spec, but still
@@ -129,6 +131,7 @@ class MainActivity : AppCompatActivity() {
                     val expirationDate = LocalDate.of(1997, Month.JANUARY, 1).plusDays(expiration.toLong())
                     val expired = expirationDate < LocalDate.now()
                     Log.i("Abonnement", expirationDate.toString() + if (expired) " (expirée)" else "")
+                    subExpiration = expirationDate
                 } else {
                     // empty
                 }
@@ -163,6 +166,13 @@ class MainActivity : AppCompatActivity() {
             // 0002:2060 (0) -> 00:00:00:00:00:00:00:00:00:00:00:FF:FF:FF:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:90:00
             // 0002:2061 (0) -> 00:00:00:00:00:00:00:00:00:00:00:FF:FF:FF:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:90:00
             // 0002:2062 (0) -> 00:00:00:00:00:00:00:00:00:00:00:FF:FF:FF:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:90:00
+
+
+            val intent = Intent(this, DisplayActivity::class.java)
+            intent.putExtra("CardID", cardID!!.toLong())
+            intent.putExtra("nbTickets", nbTickets!!)
+            intent.putExtra("subExpiration", subExpiration.toString())
+            startActivity(intent)
         }
     }
 
@@ -226,10 +236,6 @@ class MainActivity : AppCompatActivity() {
     public override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)
-
-        val intent = Intent(this, DisplayActivity::class.java)
-        intent.putExtra("CardID", cardID!!.toLong())
-        startActivity(intent)
     }
 
     private fun list(tag: IsoDep) {
