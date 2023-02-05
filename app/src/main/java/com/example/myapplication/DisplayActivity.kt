@@ -19,9 +19,9 @@ class DisplayActivity: AppCompatActivity()  {
             startActivity(intent)
         }
 
-        val exp = intent.getStringExtra("Expiration")
-        val date = findViewById<EditText>(R.id.editTextDate)
-        date.setText(if (exp != null) exp else "None" )
+//        val exp = intent.getStringExtra("Expiration")
+//        val date = findViewById<EditText>(R.id.editTextDate)
+//        date.setText(if (exp != null) exp else "None" )
 
     }
 
