@@ -69,11 +69,15 @@ class MainActivity : AppCompatActivity() {
                     ((id_b[1].toUInt() and 0xFFu) shl 16) or
                     ((id_b[2].toUInt() and 0xFFu) shl 8) or
                     (id_b[3].toUInt() and 0xFFu)
-            Log.e("b", formatBytes(id_b))
-            Log.e("b", "%d".format(id.toLong()))
+            Log.i("Numéro de carte", "%d (%s)".format(id.toLong(), formatBytes(id_b)))
             // Devrait contenir: Version de carte OPUS, réseau STM, date d'expiration & info sur l'utilisateur(?)
             val envField = read(isoDep, arrayOf<UShort>().asIterable(), 0x07) ?: throw Exception("???? No Env?")
+            val expiration = readBits(envField[0], 45, 14);
+            val expirationDate = LocalDate.of(1997, Month.JANUARY, 1).plusDays(expiration.toLong())
+            val expired = expirationDate < LocalDate.now()
+            Log.i("Expiration de la carte", expirationDate.toString() + if (expired) " (expired)" else "")
             // Passe mensuelle
+            // Peut contenir le type de billet, l'expiration, la localité (?), les restrictions et des infos d'achat
             val subsField = read(isoDep, arrayOf<UShort>().asIterable(), 0x09) ?: throw Exception("???? No Subs?")
             /*
             mensuelle, avec billets:
@@ -102,6 +106,7 @@ class MainActivity : AppCompatActivity() {
                 read(isoDep, arrayOf<UShort>().asIterable(), it.toByte())
                     ?: throw Exception("???? No Passages?")
             }.toCollection(Vector<ByteArray>())*/ // Only one pass??
+            // Devrait contenir: compte de billets encore actifs
             val passagesField: Vector<ByteArray?> = (0x202A..0x202D).map {
                 (read(isoDep, arrayOf(0x0002U, it.toUShort()).asIterable())
                     ?: throw Exception("???? No Passages?")).getOrNull(0)
@@ -112,13 +117,13 @@ class MainActivity : AppCompatActivity() {
                 val hasSub = !sub.all { byte -> byte == 0x00.toByte() }
                 if (isTicket) {
                     val numberOfTickets = readBits(p!!, 16, 8)
-                    Log.d("Ticket", "Number of tickets: %d".format(numberOfTickets))
+                    Log.i("Billets", "Nombre de billets: %d".format(numberOfTickets))
                 } else if (hasSub) {
                     // Braindead date format, 14 bits??? And since 1997?? Year of the initial Calypso spec, but still
                     val expiration = readBits(sub, 47, 14)
                     val expirationDate = LocalDate.of(1997, Month.JANUARY, 1).plusDays(expiration.toLong())
                     val expired = expirationDate < LocalDate.now()
-                    Log.d("Sub", expirationDate.toString() + if (expired) " (expired)" else "")
+                    Log.i("Abonnement", expirationDate.toString() + if (expired) " (expirée)" else "")
                 } else {
                     // empty
                 }
